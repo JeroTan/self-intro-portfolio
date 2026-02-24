@@ -1,7 +1,7 @@
 ---
 import PagePlate from "@/layouts/PagePlate.astro";
 
-const location = Astro.searchParams.get("location") || "home";
+const location = Astro.url.searchParams.get("location") || "home";
 ---
 
 <PagePlate title="Self-Introduction Portfolio" clean noContainer noFooter noHeader>
