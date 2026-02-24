@@ -1,9 +1,17 @@
 ---
+import { Skeleton } from "@/components/ui/skeleton";
+import GameMainPage from "@/features/game/GameMainPage";
 import PagePlate from "@/layouts/PagePlate.astro";
 
 const location = Astro.url.searchParams.get("location") || "home";
 ---
 
 <PagePlate title="Self-Introduction Portfolio" clean noContainer noFooter noHeader>
-
+  <main class="w-full h-screen">
+    <GameMainPage client:only="react">
+      <div slot="fallback" class="size-full relative">
+        <Skeleton client:load className="size-full" />
+      </div>
+    </GameMainPage>
+  </main>
 </PagePlate>
