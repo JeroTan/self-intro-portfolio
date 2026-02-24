@@ -1,6 +1,6 @@
 // All of the things needed to jumpstart this template
 let variables = [
-	"__PROJECT_NAME__",
+	"Jerowe Tan - Self Intro Game",
 	"__PROJECT_DESCRIPTION__",
 	"__PROJECT_AUTHOR__",
 	"__PROJECT_PUBLISHER__",

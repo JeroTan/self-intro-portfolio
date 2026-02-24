@@ -49,7 +49,6 @@ export async function generateCombinedCloudImage(
   seed: number = Math.random() * 10000
 ): Promise<CloudAtlasResult> {
   // ALWAYS use 2000x2000 tiling pattern for performance testing
-  console.log(`Using 2000x2000 tiled pattern (map size: ${mapWidth}x${mapHeight})`);
   return generateTiledPattern(seed);
   
   /* Original logic - commented for performance testing

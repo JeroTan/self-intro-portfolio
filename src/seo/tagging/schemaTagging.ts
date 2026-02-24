@@ -3,7 +3,7 @@ import type { QuantitativeValue, WebPage } from "schema-dts";
 
 export function basicWebPageSchemaTags({
 	type,
-	title = "__PROJECT_NAME__",
+	title = "Jerowe Tan - Self Intro Game",
 	webUrl = "https://www.example.com",
 	description,
 	headline,

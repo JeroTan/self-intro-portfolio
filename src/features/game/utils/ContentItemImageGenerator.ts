@@ -32,6 +32,7 @@ function seededRandom(seed: number, index: number): number {
 
 /**
  * Measure text dimensions using Canvas2D
+ * Supports explicit line breaks with \n
  */
 function measureText(
   ctx: CanvasRenderingContext2D,
@@ -40,55 +41,59 @@ function measureText(
   maxWidth: number
 ): { width: number; height: number; lines: string[] } {
   ctx.font = font;
-  const metrics = ctx.measureText(text);
-  const singleLineWidth = metrics.width;
+  const metrics = ctx.measureText('M'); // Use 'M' for consistent line height
+  const lineHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
   
-  // If text fits in one line, return it
-  if (singleLineWidth <= maxWidth) {
-    return {
-      width: singleLineWidth,
-      height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
-      lines: [text],
-    };
-  }
+  // First split by explicit newlines
+  const paragraphs = text.split('\n');
+  const allLines: string[] = [];
   
-  // Text needs wrapping - split by words
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let currentLine = '';
-  
-  words.forEach((word, i) => {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    const testWidth = ctx.measureText(testLine).width;
+  // Process each paragraph (separated by \n)
+  paragraphs.forEach((paragraph) => {
+    const singleLineWidth = ctx.measureText(paragraph).width;
     
-    if (testWidth <= maxWidth) {
-      currentLine = testLine;
-    } else {
-      if (currentLine) {
-        lines.push(currentLine);
+    // If paragraph fits in one line, add it
+    if (singleLineWidth <= maxWidth) {
+      allLines.push(paragraph);
+      return;
+    }
+    
+    // Paragraph needs wrapping - split by words
+    const words = paragraph.split(' ');
+    let currentLine = '';
+    
+    words.forEach((word) => {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const testWidth = ctx.measureText(testLine).width;
+      
+      if (testWidth <= maxWidth) {
+        currentLine = testLine;
+      } else {
+        if (currentLine) {
+          allLines.push(currentLine);
+        }
+        currentLine = word;
       }
-      currentLine = word;
+    });
+    
+    if (currentLine) {
+      allLines.push(currentLine);
     }
   });
   
-  if (currentLine) {
-    lines.push(currentLine);
-  }
-  
   // Calculate actual wrapped dimensions
   let maxLineWidth = 0;
-  lines.forEach(line => {
+  allLines.forEach(line => {
     const lineWidth = ctx.measureText(line).width;
     maxLineWidth = Math.max(maxLineWidth, lineWidth);
   });
   
-  const lineHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-  const totalHeight = lineHeight * lines.length * 1.2; // 1.2 for line spacing
+  const totalHeight = lineHeight * allLines.length * 1.2; // 1.2 for line spacing
   
   return {
     width: maxLineWidth,
     height: totalHeight,
-    lines,
+    lines: allLines,
   };
 }
 
@@ -99,7 +104,7 @@ export async function generateContentItemImage(
   data: ContentData,
   id: string
 ): Promise<ContentImageResult> {
-  const { header, content } = data;
+  const { header, content, image, 'image-sizing': imageSizing = 'FIT_TO_WIDTH' } = data;
   
   // Create temporary canvas for measurement
   const tempCanvas = document.createElement('canvas');
@@ -112,13 +117,59 @@ export async function generateContentItemImage(
   const padding = 40;
   const verticalGap = 20;
   
-  // Measure text
+  // Measure text first to determine content width
   const headerMeasure = measureText(tempCtx, header, headerFont, maxTextWidth);
   const bodyMeasure = measureText(tempCtx, content, bodyFont, maxTextWidth);
   
-  // Calculate content dimensions
-  const contentWidth = Math.max(headerMeasure.width, bodyMeasure.width) + padding * 2;
-  const contentHeight = headerMeasure.height + verticalGap + bodyMeasure.height + padding * 2;
+  // Calculate text content width
+  const textContentWidth = Math.max(headerMeasure.width, bodyMeasure.width);
+  
+  // Load content image if exists
+  let contentImg: HTMLImageElement | null = null;
+  let imageWidth = 0;
+  let imageHeight = 0;
+  
+  if (image) {
+    contentImg = new Image();
+    await new Promise<void>((resolve, reject) => {
+      contentImg!.onload = () => {
+        const aspectRatio = contentImg!.width / contentImg!.height;
+        
+        // Apply sizing mode
+        if (imageSizing === 'DO_NOT_FIT') {
+          // Use original size, but don't exceed text content width
+          imageWidth = Math.min(contentImg!.width, textContentWidth);
+          imageHeight = Math.min(contentImg!.height, imageWidth / aspectRatio);
+        } else if (imageSizing === 'FIT_TO_HEIGHT') {
+          // Fit to a reasonable height and scale width accordingly
+          const maxHeight = 400; // Max height constraint
+          imageHeight = Math.min(contentImg!.height, maxHeight);
+          imageWidth = imageHeight * aspectRatio;
+        } else {
+          // FIT_TO_WIDTH (default): Match text content width
+          imageWidth = textContentWidth;
+          imageHeight = imageWidth / aspectRatio;
+        }
+        
+        resolve();
+      };
+      contentImg!.onerror = () => {
+        console.warn(`Failed to load image: ${image}`);
+        contentImg = null;
+        resolve(); // Continue without image
+      };
+      contentImg!.src = image;
+    });
+  }
+  
+  // Calculate content dimensions (image now matches text width)
+  let contentWidth = textContentWidth + padding * 2;
+  
+  let contentHeight = headerMeasure.height + verticalGap + bodyMeasure.height;
+  if (contentImg) {
+    contentHeight += imageHeight + verticalGap; // Add image height + gap
+  }
+  contentHeight += padding * 2;
   
   // Calculate border dimensions
   const halfWidth = Math.floor(contentWidth / 2 / TILE_SIZE);
@@ -232,13 +283,25 @@ export async function generateContentItemImage(
     );
   });
   
+  // Draw content image if exists (at the top)
+  let currentY = centerY - contentHeight / 2 + padding;
+  if (contentImg) {
+    ctx.drawImage(
+      contentImg,
+      centerX - imageWidth / 2,
+      currentY,
+      imageWidth,
+      imageHeight
+    );
+    currentY += imageHeight + verticalGap;
+  }
+  
   // Draw header text (centered)
   ctx.font = headerFont;
   ctx.fillStyle = '#333333'; // Dark gray
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   
-  let currentY = centerY - contentHeight / 2 + padding;
   headerMeasure.lines.forEach((line, i) => {
     const lineHeight = headerMeasure.height / headerMeasure.lines.length * 1.2;
     ctx.fillText(line, centerX, currentY + i * lineHeight);

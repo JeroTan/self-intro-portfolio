@@ -7,6 +7,7 @@ export interface ContentData {
   header: string;
   content: string;
   image?: string;
+  'image-sizing'?: 'FIT_TO_WIDTH' | 'FIT_TO_HEIGHT' | 'DO_NOT_FIT';
   url_link?: string;
 }
 
@@ -153,8 +154,7 @@ export function generateContentPositions(
   const items: ContentItem[] = [];
   let id = 0;
 
-  // Minimum spacing between content boxes (edge to edge)
-  const minSpacing = 150;
+  // Spacing between content boxes (edge to edge)
   const viewportBuffer = 200;
 
   // ============ STEP 1: CALCULATE ALL SIZES FIRST ============
@@ -180,7 +180,7 @@ export function generateContentPositions(
   whoisWithSizes.forEach((data, index) => {
     totalWhoisHeight += data.size.height / 2; // Half of current box
     if (index < whoisWithSizes.length - 1) {
-      totalWhoisHeight += minSpacing + randomOffset(0, minSpacing); // Gap
+      totalWhoisHeight += CONTENT_MIN_GAP + randomOffset(CONTENT_MIN_GAP, CONTENT_MAX_GAP); // Gap
       totalWhoisHeight += whoisWithSizes[index + 1].size.height / 2; // Half of next box
     } else {
       totalWhoisHeight += data.size.height / 2; // Last box's other half
@@ -192,7 +192,7 @@ export function generateContentPositions(
   worksWithSizes.forEach((data, index) => {
     totalWorksWidth += data.size.width / 2; // Half of current box
     if (index < worksWithSizes.length - 1) {
-      totalWorksWidth += minSpacing + randomOffset(0, minSpacing); // Gap
+      totalWorksWidth += CONTENT_MIN_GAP + randomOffset(CONTENT_MIN_GAP, CONTENT_MAX_GAP); // Gap
       totalWorksWidth += worksWithSizes[index + 1].size.width / 2; // Half of next box
     } else {
       totalWorksWidth += data.size.width / 2; // Last box's other half
@@ -204,7 +204,7 @@ export function generateContentPositions(
   socialWithSizes.forEach((data, index) => {
     totalSocialWidth += data.size.width / 2; // Half of current box
     if (index < socialWithSizes.length - 1) {
-      totalSocialWidth += minSpacing + randomOffset(0, minSpacing); // Gap
+      totalSocialWidth += CONTENT_MIN_GAP + randomOffset(CONTENT_MIN_GAP, CONTENT_MAX_GAP); // Gap
       totalSocialWidth += socialWithSizes[index + 1].size.width / 2; // Half of next box
     } else {
       totalSocialWidth += data.size.width / 2; // Last box's other half
@@ -236,8 +236,8 @@ export function generateContentPositions(
     if (index < whoisWithSizes.length - 1) {
       const currentHalfHeight = data.size.height / 2;
       const nextHalfHeight = whoisWithSizes[index + 1].size.height / 2;
-      const extraSpacing = randomOffset(0, minSpacing);
-      currentY -= (currentHalfHeight + minSpacing + extraSpacing + nextHalfHeight);
+      const extraSpacing = randomOffset(CONTENT_MIN_GAP, CONTENT_MAX_GAP);
+      currentY -= (currentHalfHeight + CONTENT_MIN_GAP + extraSpacing + nextHalfHeight);
     }
   });
 
@@ -256,8 +256,8 @@ export function generateContentPositions(
     if (index < worksWithSizes.length - 1) {
       const currentHalfWidth = data.size.width / 2;
       const nextHalfWidth = worksWithSizes[index + 1].size.width / 2;
-      const extraSpacing = randomOffset(0, minSpacing);
-      currentX += (currentHalfWidth + minSpacing + extraSpacing + nextHalfWidth);
+      const extraSpacing = randomOffset(CONTENT_MIN_GAP, CONTENT_MAX_GAP);
+      currentX += (currentHalfWidth + CONTENT_MIN_GAP + extraSpacing + nextHalfWidth);
     }
   });
 
@@ -276,8 +276,8 @@ export function generateContentPositions(
     if (index < socialWithSizes.length - 1) {
       const currentHalfWidth = data.size.width / 2;
       const nextHalfWidth = socialWithSizes[index + 1].size.width / 2;
-      const extraSpacing = randomOffset(0, minSpacing);
-      currentNegX -= (currentHalfWidth + minSpacing + extraSpacing + nextHalfWidth);
+      const extraSpacing = randomOffset(CONTENT_MIN_GAP, CONTENT_MAX_GAP);
+      currentNegX -= (currentHalfWidth + CONTENT_MIN_GAP + extraSpacing + nextHalfWidth);
     }
   });
 

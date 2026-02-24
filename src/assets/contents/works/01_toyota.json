@@ -1,6 +1,6 @@
 {
-  "header": "Toyota Mobility Solutions Philippines",
-  "content": "Software Engineer (2024 – Present) — Designed and implemented backend APIs using TypeScript. Built authentication and authorization systems using JWT and session-based mechanisms. Designed role-based access control (RBAC). Implemented secure media access using cloud storage with temporary access tokens. Integrated payment gateways (2C2P, Maya), Google Maps APIs, courier services, and WebSockets for real-time updates. Automated blog post generation workflows using Cloudflare AI. Tackling DDD (Domain-driven Design) for multi-platform applications.",
-  "image": "",
+  "header": "2024 – Present",
+  "content": "\nWork with Rental Car Service and Logistics Matching Service Application. \n\nDesigned frontend UI, API calling and implemented backend APIs using mostly TypeScript.",
+  "image": "/images/contents/works/toyota-mobility-solutions-philippines.webp",
   "url_link": ""
 }

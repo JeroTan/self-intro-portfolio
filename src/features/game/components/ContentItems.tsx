@@ -16,11 +16,12 @@ export default function ContentItems({ assets }: ContentItemsProps) {
   const { state } = useGameContext();
   const { contentItems, contentItemTextures, playerPosition, mapBounds } = state;
   
-  // Wait for textures to load
-  if (!contentItemTextures || !mapBounds) return null;
-  
   // Generate wrapped instances of content items for seamless map boundaries
   const visibleItems = useMemo(() => {
+    // Wait for textures and bounds to load
+    if (!contentItemTextures || !mapBounds) return [];
+    
+
     const renderDistance = 1500; // pixels
     const totalWidth = mapBounds.x * 2;
     const totalHeight = mapBounds.y * 2;
@@ -54,7 +55,7 @@ export default function ContentItems({ assets }: ContentItemsProps) {
   return (
     <pixiContainer>
       {visibleItems.map(({ item, wrappedPosition, key }) => {
-        const textureData = contentItemTextures.get(item.id);
+        const textureData = contentItemTextures?.get(item.id);
         if (!textureData) return null;
         
         return (
