@@ -2,5 +2,5 @@
   "header": "Local Voice Generation App",
   "content": "Built a portable Python application for local voice generation using LLM, developed with Claude AI Agent assistance.",
   "image": "/images/contents/works/chatter-box-voice-generation.png",
-  "url_link": ""
+  "url_link": "https://github.com/JeroTan/chatterbox-portable-gui"
 }
